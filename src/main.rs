@@ -18,7 +18,7 @@ fn wc() -> io::Result<()> {
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn() {
-        Err(why) => panic!("couldn't spawn wc: {}", why.description()),
+        Err(why) => panic!("couldn't spawn wc: {}", why),
         Ok(process) => process,
     };
 
@@ -28,7 +28,7 @@ fn wc() -> io::Result<()> {
     // must have one, we can directly `unwrap` it.
     match process.stdin.unwrap().write_all(PANGRAM.as_bytes()) {
         Err(why) => panic!("couldn't write to wc stdin: {}",
-                           why.description()),
+                           why),
         Ok(_) => println!("sent pangram to wc"),
     }
 
@@ -42,7 +42,7 @@ fn wc() -> io::Result<()> {
     let mut s = String::new();
     match process.stdout.unwrap().read_to_string(&mut s) {
         Err(why) => panic!("couldn't read wc stdout: {}",
-                           why.description()),
+                           why),
         Ok(_) => print!("wc responded with:\n{}", s),
     }
 
@@ -67,17 +67,31 @@ fn geodsolve() -> io::Result<()> {
     let mut line_number = 0;
 
     let mut input_string: String = String::new();
-    io::stdin().read_to_string(&mut input_string).unwrap();
+    //io::stdin().read_to_string(&mut input_string).unwrap();
 
-    match geodsolve_process.stdin.unwrap().write_all(input_string.as_bytes()) {
-        Err(why) => panic!("couldn't write to wc stdin: {}",
-                           why.description()),
-        Ok(_) => println!("sent pangram to wc"),
+    for line in io::stdin().lock().lines() {
+        line_number += 1;
+        let line = line.unwrap();
+        match geodsolve_process.stdin.as_mut().unwrap().write_all(line.as_bytes()) {
+            Err(why) => panic!("couldn't write to wc stdin: {}",
+                               why),
+            Ok(_) => println!("sent line to wc"),
+        }
+        match geodsolve_process.stdin.as_mut().unwrap().write_all("\n".as_bytes()) {
+            Err(why) => panic!("couldn't write to wc stdin: {}",
+                               why),
+            Ok(_) => println!("sent line to wc"),
+        }
     }
 
-    // for line in io::stdin().lock().lines() {
-    //     line_number += 1;
-    //     let line = line.unwrap();
+    println!("will wait");
+    geodsolve_process.wait();
+    println!("did wait");
+    // geodsolve_process.stdin.as_mut().unwrap().write_all("\n".as_bytes());
+
+    //}
+
+
     //
     //     // Write a string to the `stdin` of `wc`.
     //     //
@@ -93,7 +107,7 @@ fn geodsolve() -> io::Result<()> {
     let mut s = String::new();
     match geodsolve_process.stdout.unwrap().read_to_string(&mut s) {
         Err(why) => panic!("couldn't read wc stdout: {}",
-                           why.description()),
+                           why),
         Ok(_) => print!("wc responded with:\n{}", s),
     }
 
@@ -117,7 +131,7 @@ fn geodsolve() -> io::Result<()> {
     // let mut s = String::new();
     // match geodsolve_process.stdout.unwrap().read_to_string(&mut s) {
     //     Err(why) => panic!("couldn't read wc stdout: {}",
-    //                        why.description()),
+    //                        why),
     //     Ok(_) => print!("geodsolve responded with:\n{}", s),
     // }
     //
