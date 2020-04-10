@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# simple program to test stdin plumbing from rust.
+# input: lines of space seperated numbers
+# output: prints one line per input, doubling each number in the input
+
+while read line; do 
+  for i in $line; do
+      printf "%f " $(echo "$i * 2" | bc)
+  done
+  printf \\n
+done

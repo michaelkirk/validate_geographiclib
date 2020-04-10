@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+cat mjk/input.dat | cargo run 
