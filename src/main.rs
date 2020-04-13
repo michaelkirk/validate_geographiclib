@@ -2,11 +2,51 @@ use tokio::io::{BufReader, AsyncBufReadExt, BufWriter, AsyncWriteExt};
 use tokio::process::Command;
 use std::process::Stdio;
 
+use std::env;
+use std::fmt;
+
+#[derive(Debug)]
+enum Error {
+    ArgumentError
+}
+
+impl std::error::Error for Error { }
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let args: Vec<String> = env::args().collect();
+
+    eprintln!("args: {:?}", args);
+
+    match args.len() {
+        2 => {
+            run(&args[1]).await
+        },
+        _ => {
+            usage();
+            Err(Error::ArgumentError.into())
+        }
+    }
+}
+
+fn usage() {
+    println!("USAGE:
+validate_geodsolve <path-string>
+
+WHERE:
+    path-string: path to a binary like GeodSolve
+");
+}
+
+async fn run(bin_name: &String) -> Result<(), Box<dyn std::error::Error>> {
     let mut test_case_reader = BufReader::new(tokio::io::stdin()).lines();
 
-    let mut geodsolve_proc = Command::new("bin/times_2")
+    let mut geodsolve_proc = Command::new(bin_name)
         .stdout(Stdio::piped())
         .stdin(Stdio::piped())
         .spawn()
@@ -40,6 +80,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn compare(test_case: String, geodsolve_output: String) {
-    eprintln!("test_case: {} -> geodsolve_output_line: {}", test_case, geodsolve_output);
+    // eprintln!("test_case: {} -> geodsolve_output_line: {}", test_case, geodsolve_output);
+    println!("{}", geodsolve_output);
+    ()
 }
 

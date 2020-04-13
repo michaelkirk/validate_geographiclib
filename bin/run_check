@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-cat mjk/input.dat | cargo run 
+head ../geographiclib_validation_naive/input/GeodTest.dat | cargo run mjk/GeodSolve
