@@ -12,7 +12,8 @@ enum Error {
     ArgumentError
 }
 
-impl std::error::Error for Error { }
+impl std::error::Error for Error {}
+
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
@@ -27,8 +28,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     match args.len() {
         2 => {
-            run(&args[1],Calculation::DirectFromP1).await
-        },
+            run(&args[1], Calculation::DirectFromP1).await
+        }
         _ => {
             usage();
             Err(Error::ArgumentError.into())
@@ -80,13 +81,25 @@ async fn run(bin_name: &String, calc: Calculation) -> Result<(), Box<dyn std::er
     Ok(())
 }
 
+use geographiclib_rs::Geodesic;
+use geod_error::DirectError;
+
 fn compare(test_case: String, geodsolve_output: String, calc: Calculation) {
-    let test_case_fields: Vec<&str> = test_case.split(" ").collect::<Vec<&str>>();
-    let output_fields: Vec<&str> = geodsolve_output.split(" ").collect::<Vec<&str>>();
+    let test_case_fields: Vec<f64> = test_case.split(" ").map(|s| s.parse::<f64>().unwrap()).collect();
+    let output_fields: Vec<f64> = geodsolve_output.split(" ").map(|s| s.parse::<f64>().unwrap()).collect();
 
+    let geod = Geodesic::wgs84();
+    let error = DirectError::new(
+        Geodesic::wgs84(),
+        output_fields[0],
+        output_fields[1],
+        output_fields[2],
+        test_case_fields[3],
+        test_case_fields[4],
+        test_case_fields[5],
+    );
 
-    println!("{}", geodsolve_output);
-    ()
+    println!("error: {:?}", error);
 }
 
 #[derive(Clone, Copy)]

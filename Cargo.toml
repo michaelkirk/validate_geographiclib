@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 # TODO: figure out the subset of features we need vs. "full"
 tokio = { version = "0.2", features = ["full"] }
+geographiclib-rs = { path = "../geodesic-rs" }
