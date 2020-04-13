@@ -8,7 +8,7 @@ static PANGRAM: &'static str =
 
 
 fn main() -> io::Result<()> {
-    wc()?;
+    // wc()?;
     geodsolve()
 }
 
@@ -53,31 +53,23 @@ fn geodsolve() -> io::Result<()> {
     // TODO pass as argument
     let geodsolve_bin = "bin/times_2";
 
-    let mut geodsolve_process = match Command::new(geodsolve_bin)
+    let mut geodsolve_process = Command::new(geodsolve_bin)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .spawn() {
-        Err(why) => panic!("couldn't spawn {}: {}", geodsolve_bin, why),
-        Ok(process) => process,
-    };
+        .spawn()
+        .expect("failed to spawn geodsolve bin");
 
-    // let mut geodsolve_stdin = geodsolve_process.stdin.unwrap();
-    // let mut geodsolve_stdout = geodsolve_process.stdout.as_mut().unwrap();
-
+    let stdin = geodsolve_process.stdin.as_mut().unwrap();
     let mut line_number = 0;
-
-    let mut input_string: String = String::new();
-    //io::stdin().read_to_string(&mut input_string).unwrap();
-
     for line in io::stdin().lock().lines() {
         line_number += 1;
         let line = line.unwrap();
-        match geodsolve_process.stdin.as_mut().unwrap().write_all(line.as_bytes()) {
+        match stdin.write_all(line.as_bytes()) {
             Err(why) => panic!("couldn't write to wc stdin: {}",
                                why),
             Ok(_) => println!("sent line to wc"),
         }
-        match geodsolve_process.stdin.as_mut().unwrap().write_all("\n".as_bytes()) {
+        match stdin.write_all("\n".as_bytes()) {
             Err(why) => panic!("couldn't write to wc stdin: {}",
                                why),
             Ok(_) => println!("sent line to wc"),
