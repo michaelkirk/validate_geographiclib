@@ -5,6 +5,8 @@ use std::process::Stdio;
 use std::env;
 use std::fmt;
 
+mod geod_error;
+
 #[derive(Debug)]
 enum Error {
     ArgumentError
@@ -69,7 +71,7 @@ async fn run(bin_name: &String, calc: Calculation) -> Result<(), Box<dyn std::er
             Err(e) => panic!("err: {:?}", e),
             Ok(None) => panic!("geodsolve should have output after giving it input"),
             Ok(Some(geodsolve_output_line)) => {
-                compare(test_case_line, geodsolve_output_line);
+                compare(test_case_line, geodsolve_output_line, calc);
             }
         }
     }
@@ -78,8 +80,11 @@ async fn run(bin_name: &String, calc: Calculation) -> Result<(), Box<dyn std::er
     Ok(())
 }
 
-fn compare(test_case: String, geodsolve_output: String) {
-    // eprintln!("test_case: {} -> geodsolve_output_line: {}", test_case, geodsolve_output);
+fn compare(test_case: String, geodsolve_output: String, calc: Calculation) {
+    let test_case_fields: Vec<&str> = test_case.split(" ").collect::<Vec<&str>>();
+    let output_fields: Vec<&str> = geodsolve_output.split(" ").collect::<Vec<&str>>();
+
+
     println!("{}", geodsolve_output);
     ()
 }
