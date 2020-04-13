@@ -1,26 +1,38 @@
-use tokio::io::{BufReader, AsyncBufReadExt};
+use tokio::io::{BufReader as TKOBufReader, AsyncBufReadExt};
 use tokio::process::Command;
 
+use std::io::{self, Read, BufReader as StdBufReader, BufRead};
 use std::process::Stdio;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut geodsolve_cmd = Command::new("bin/times_2");
-
-    // Specify that we want the command's standard output piped back to us.
-    // By default, standard input/output/error will be inherited from the
-    // current process (for example, this means that standard input will
-    // come from the keyboard and standard output/error will go directly to
-    // the terminal if this process is invoked from the command line).
-    geodsolve_cmd.stdout(Stdio::piped());
-
-    let mut geodsolve_proc = geodsolve_cmd.spawn()
+    let mut geodsolve_proc = Command::new("bin/times_2")
+        .stdout(Stdio::piped())
+        .stdin(Stdio::piped())
+        .spawn()
         .expect("failed to spawn command");
+
+
+    while true {
+        let mut input = String::new();
+        match io::stdin().read_line(&mut input) {
+            Ok(n) => {
+                println!("{} bytes read", n);
+                println!("{}", input);
+                if n == 0 {
+                    println!("EOF");
+                    break;
+                }
+            }
+            Err(error) => println!("error: {}", error),
+        }
+    }
+
 
     let geodsolve_stdout = geodsolve_proc.stdout.take()
         .expect("child did not have a handle to stdout");
 
-    let mut geodsolve_reader = BufReader::new(geodsolve_stdout).lines();
+    let mut geodsolve_reader = TKOBufReader::new(geodsolve_stdout).lines();
 
     // Ensure the child process is spawned in the runtime so it can
     // make progress on its own while we await for any output.
