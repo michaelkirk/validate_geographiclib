@@ -84,7 +84,6 @@ async fn run(bin_name: &str, calcs: &Vec<Calculation>) -> Result<(), Box<dyn std
     let mut max_position_error: Option<DirectError> = Option::None;
     let mut max_azi_error: Option<DirectError> = Option::None;
     let mut max_m12_error: Option<DirectError> = Option::None;
-    let mut max_S12_error: Option<DirectError> = Option::None;
 
     // Inverse Calculation Process
     let mut inverse_proc = Command::new(bin_name)
@@ -143,12 +142,10 @@ async fn run(bin_name: &str, calcs: &Vec<Calculation>) -> Result<(), Box<dyn std
                         output_fields[4],
                         output_fields[5],
                         output_fields[8],
-                        output_fields[11],
                         test_case_fields[3],
                         test_case_fields[4],
                         test_case_fields[5],
                         test_case_fields[8],
-                        test_case_fields[9],
                         &geod,
                         line_number,
                         calc,
@@ -158,7 +155,6 @@ async fn run(bin_name: &str, calcs: &Vec<Calculation>) -> Result<(), Box<dyn std
             max_position_error = max_error(max_position_error, direct_error, |e| e.position_error);
             max_azi_error = max_error(max_azi_error, direct_error, |e| e.azi_error);
             max_m12_error = max_error(max_m12_error, direct_error, |e| e.m12_error);
-            max_S12_error = max_error(max_S12_error, direct_error, |e| e.S12_error);
         }
 
         let calc = Calculation::DirectP2ToP1;
@@ -183,12 +179,10 @@ async fn run(bin_name: &str, calcs: &Vec<Calculation>) -> Result<(), Box<dyn std
                         output_fields[4],
                         output_fields[5],
                         output_fields[8],
-                        output_fields[11],
                         test_case_fields[0],
                         test_case_fields[1],
                         test_case_fields[2],
                         -test_case_fields[8],
-                        test_case_fields[9],
                         &geod,
                         line_number,
                         calc,
@@ -198,7 +192,6 @@ async fn run(bin_name: &str, calcs: &Vec<Calculation>) -> Result<(), Box<dyn std
             max_position_error = max_error(max_position_error, direct_error, |e| e.position_error);
             max_azi_error = max_error(max_azi_error, direct_error, |e| e.azi_error);
             max_m12_error = max_error(max_m12_error, direct_error, |e| e.m12_error);
-            max_S12_error = max_error(max_S12_error, direct_error, |e| e.S12_error);
         }
 
         let calc = Calculation::Inverse;
@@ -227,10 +220,6 @@ async fn run(bin_name: &str, calcs: &Vec<Calculation>) -> Result<(), Box<dyn std
                 }
             };
             max_distance_error = max_error(max_distance_error, inverse_error, |e| e.s12_error);
-            // max_position_error = max_error(max_position_error, direct_error, |e| e.position_error);
-            // max_azi_error = max_error(max_azi_error, direct_error, |e| e.azi_error);
-            // max_m12_error = max_error(max_m12_error, direct_error, |e| e.m12_error);
-            // max_S12_error = max_error(max_S12_error, direct_error, |e| e.S12_error);
         }
 
         line_number += 1;
@@ -240,9 +229,6 @@ async fn run(bin_name: &str, calcs: &Vec<Calculation>) -> Result<(), Box<dyn std
     let max_position_error = max_position_error.unwrap();
     let max_azi_error = max_azi_error.unwrap();
     let max_m12_error = max_m12_error.unwrap();
-
-    // not printed directly, but used in calculating other errors.
-    // let max_S12_error = max_S12_error.unwrap();
 
     println!(
         "0 {:.2} {}",
