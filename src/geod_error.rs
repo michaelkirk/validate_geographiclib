@@ -193,14 +193,14 @@ void GeodError(const test& tgeod,
 
 #[derive(Debug)]
 pub struct DirectError {
-    position_error: f64,
-    azi_error: f64,
+    pub position_error: f64,
+    pub azi_error: f64,
 }
 
 use geographiclib_rs::Geodesic;
 
 impl DirectError {
-    pub fn new(tgeod: Geodesic, computed_lat: f64, computed_lon: f64, computed_azi: f64, expected_lat: f64, expected_lon: f64, expected_azi: f64) -> Self {
+    pub fn new(tgeod: &Geodesic, computed_lat: f64, computed_lon: f64, computed_azi: f64, expected_lat: f64, expected_lon: f64, expected_azi: f64) -> Self {
         // Direct from P1:
 
         // err[0] = max(dist(tgeod.EquatorialRadius(), tgeod.Flattening(),
@@ -213,7 +213,7 @@ impl DirectError {
         // err[1] = max(abs(azidiff(lat2, lon2, tlon2, azi2, tazi2)),
         //              abs(azidiff(lat1, lon1, tlon1, azi1, tazi1))) *
         //     tgeod.EquatorialRadius();
-        let azi_error = azidiff(expected_lat, expected_lon, computed_lon, expected_azi, computed_azi) * tgeod.equatorial_radius();
+        let azi_error = azidiff(expected_lat, expected_lon, computed_lon, expected_azi, computed_azi).abs() * tgeod.equatorial_radius();
 
         Self { position_error, azi_error }
     }
