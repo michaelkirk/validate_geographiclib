@@ -279,7 +279,7 @@ pub struct InverseError {
 }
 
 impl InverseError {
-    pub fn new(computed_s12: f64, expected_s12: f64, tgeod: &Geodesic, line_number: u32) -> Self {
+    pub fn new(computed_s12: f64, expected_s12: f64, line_number: u32) -> Self {
         // err[3] = abs(ts12 - s12);
         let s12_error = (computed_s12 - expected_s12).abs();
         Self {

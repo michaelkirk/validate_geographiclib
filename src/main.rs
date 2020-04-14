@@ -214,7 +214,6 @@ async fn run(bin_name: &str, calcs: &Vec<Calculation>) -> Result<(), Box<dyn std
                     InverseError::new(
                         output_fields[6],
                         test_case_fields[6],
-                        &geod,
                         line_number,
                     )
                 }
