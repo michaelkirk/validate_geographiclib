@@ -5,6 +5,9 @@
 set -e
 
 cargo build
-cat mjk/input/GeodTest-short.dat | ../geographiclib/tests/GeodTest
-cat mjk/input/GeodTest-short.dat | ./target/debug/validate_geographiclib mjk/GeodSolve
+cat mjk/input/GeodTest.dat | head -n 300 | ../geographiclib/tests/GeodTest
+cat mjk/input/GeodTest.dat | head -n 300 | ./target/debug/validate_geographiclib mjk/GeodSolve
+
+# cat mjk/input/GeodTest.dat | ../geographiclib/tests/GeodTest
+# cat mjk/input/GeodTest.dat | ./target/debug/validate_geographiclib mjk/GeodSolve
 

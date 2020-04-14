@@ -201,12 +201,14 @@ void GeodError(const test& tgeod,
 pub struct DirectError {
     pub position_error: f64,
     pub azi_error: f64,
+    pub m12_error: f64,
+    pub S12_error: f64,
     pub line_number: u32,
     pub calculation: Calculation
 }
 
 impl DirectError {
-    pub fn new(tgeod: &Geodesic, computed_lat: f64, computed_lon: f64, computed_azi: f64, expected_lat: f64, expected_lon: f64, expected_azi: f64, line_number: u32, calculation: Calculation) -> Self {
+    pub fn new(computed_lat: f64, computed_lon: f64, computed_azi: f64, computed_m12: f64, computed_S12: f64, expected_lat: f64, expected_lon: f64, expected_azi: f64, expected_m12: f64, expected_S12: f64, tgeod: &Geodesic, line_number: u32, calculation: Calculation) -> Self {
         // err[0] = max(dist(tgeod.EquatorialRadius(), tgeod.Flattening(),
         //                   lat2, lon2, tlat2, tlon2),
         //              dist(tgeod.EquatorialRadius(), tgeod.Flattening(),
@@ -219,6 +221,22 @@ impl DirectError {
         //     tgeod.EquatorialRadius();
         let azi_error = azidiff(expected_lat, expected_lon, computed_lon, expected_azi, computed_azi).abs() * tgeod.equatorial_radius();
 
-        Self { position_error, azi_error, line_number, calculation }
+        // err[2] = max(abs(tm12a - m12), abs(tm12b + m12));
+        let mut m12_error = (computed_m12 - expected_m12).abs();
+
+        // // m12 and S12 are very sensitive with the inverse problem near conjugacy
+        // if (!(s12 > tgeod.EquatorialRadius() && m12 < 10e3)) {
+        //     err[2] = max(err[2], abs(tm12a - m12));
+        //     if (!Math::isnan(S12))
+        //     err[6] = max(err[6], abs(tS12a - S12) / tgeod.EquatorialRadius());
+        // }
+        if !(expected_S12 > tgeod.equatorial_radius() && expected_m12 < 10e3) {
+            // This seems superfluous for m12, we're already capturing max
+            // m12_error = f64::max(m12_error, (computed_m12 - expected_m12).abs());
+        }
+
+        let S12_error = 0.0; // TODO
+
+        Self { position_error, azi_error, m12_error, S12_error, line_number, calculation }
     }
 }

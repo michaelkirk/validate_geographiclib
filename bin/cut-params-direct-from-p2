@@ -1,0 +1,2 @@
+# based on https://geographiclib.sourceforge.io/html/geodesic.html#testgeod
+cut -d' ' -f4,5,6,7 | sed "s/ \([^ ]*$\)/ -\1/"

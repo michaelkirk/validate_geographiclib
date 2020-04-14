@@ -53,7 +53,7 @@ async fn run(bin_name: &str, calcs: &Vec<Calculation>) -> Result<(), Box<dyn std
     let geod = Geodesic::wgs84();
 
     if calcs.contains(&Calculation::DirectP1ToP2) || calcs.contains(&Calculation::DirectP2ToP1) {
-        let mut geodsolve_proc = Command::new(bin_name).arg("-p").arg("10")
+        let mut geodsolve_proc = Command::new(bin_name).arg("-p").arg("10").arg("-f")
             .stdout(Stdio::piped())
             .stdin(Stdio::piped())
             .spawn()
@@ -69,6 +69,19 @@ async fn run(bin_name: &str, calcs: &Vec<Calculation>) -> Result<(), Box<dyn std
 
         let mut max_position_error: Option<DirectError> = Option::None;
         let mut max_azi_error: Option<DirectError> = Option::None;
+        let mut max_m12_error: Option<DirectError> = Option::None;
+        let mut max_S12_error: Option<DirectError> = Option::None;
+
+        fn max_error<F>(a: Option<DirectError>, b: DirectError, f: F) -> Option<DirectError>
+        where F: Fn(DirectError) -> f64
+        {
+            Some(
+                match a {
+                    None => b,
+                    Some(a) => if f(b) > f(a) { b } else { a }
+                }
+            )
+        }
 
         let mut line_number = 0;
         while let Some(test_case_line) = test_case_reader.next_line().await? {
@@ -86,42 +99,26 @@ async fn run(bin_name: &str, calcs: &Vec<Calculation>) -> Result<(), Box<dyn std
                     Ok(Some(geodsolve_output_line)) => {
                         let output_fields: Vec<f64> = geodsolve_output_line.split(" ").map(|s| s.parse::<f64>().unwrap()).collect();
                         DirectError::new(
-                            &geod,
-                            output_fields[0],
-                            output_fields[1],
-                            output_fields[2],
+                            output_fields[3],
+                            output_fields[4],
+                            output_fields[5],
+                            output_fields[8],
+                            output_fields[11],
                             test_case_fields[3],
                             test_case_fields[4],
                             test_case_fields[5],
+                            test_case_fields[8],
+                            test_case_fields[9],
+                            &geod,
                             line_number,
                             calc
                         )
                     }
                 };
-                max_position_error = Some(
-                    match max_position_error {
-                        None => direct_error,
-                        Some(prev_max) => {
-                            if direct_error.position_error > prev_max.position_error {
-                                direct_error
-                            } else {
-                                prev_max
-                            }
-                        }
-                    }
-                );
-                max_azi_error = Some(
-                    match max_azi_error {
-                        None => direct_error,
-                        Some(prev_max) => {
-                            if direct_error.azi_error > prev_max.azi_error {
-                                direct_error
-                            } else {
-                                prev_max
-                            }
-                        }
-                    }
-                );
+                max_position_error = max_error(max_position_error, direct_error, |e| e.position_error );
+                max_azi_error = max_error(max_azi_error, direct_error, |e| e.azi_error );
+                max_m12_error = max_error(max_m12_error, direct_error, |e| e.m12_error );
+                max_S12_error = max_error(max_S12_error, direct_error, |e| e.S12_error );
             }
 
             if calcs.contains(&Calculation::DirectP2ToP1) {
@@ -136,42 +133,26 @@ async fn run(bin_name: &str, calcs: &Vec<Calculation>) -> Result<(), Box<dyn std
                     Ok(Some(geodsolve_output_line)) => {
                         let output_fields: Vec<f64> = geodsolve_output_line.split(" ").map(|s| s.parse::<f64>().unwrap()).collect();
                         DirectError::new(
-                            &geod,
-                            output_fields[0],
-                            output_fields[1],
-                            output_fields[2],
+                            output_fields[3],
+                            output_fields[4],
+                            output_fields[5],
+                            output_fields[8],
+                            output_fields[11],
                             test_case_fields[0],
                             test_case_fields[1],
                             test_case_fields[2],
+                            -test_case_fields[8],
+                            test_case_fields[9],
+                            &geod,
                             line_number,
                             calc
                         )
                     }
                 };
-                max_position_error = Some(
-                    match max_position_error {
-                        None => direct_error,
-                        Some(prev_max) => {
-                            if direct_error.position_error > prev_max.position_error {
-                                direct_error
-                            } else {
-                                prev_max
-                            }
-                        }
-                    }
-                );
-                max_azi_error = Some(
-                    match max_azi_error {
-                        None => direct_error,
-                        Some(prev_max) => {
-                            if direct_error.azi_error > prev_max.azi_error {
-                                direct_error
-                            } else {
-                                prev_max
-                            }
-                        }
-                    }
-                );
+                max_position_error = max_error(max_position_error, direct_error, |e| e.position_error );
+                max_azi_error = max_error(max_azi_error, direct_error, |e| e.azi_error );
+                max_m12_error = max_error(max_m12_error, direct_error, |e| e.m12_error );
+                max_S12_error = max_error(max_S12_error, direct_error, |e| e.S12_error );
             }
 
             line_number += 1;
@@ -180,8 +161,14 @@ async fn run(bin_name: &str, calcs: &Vec<Calculation>) -> Result<(), Box<dyn std
         let mult: f64 = 1.0e9;
         let max_position_error = max_position_error.unwrap();
         let max_azi_error = max_azi_error.unwrap();
+        let max_m12_error = max_m12_error.unwrap();
+
+        // not printed directly, but used in calculating other errors.
+        // let max_S12_error = max_S12_error.unwrap();
+
         println!("0 {:.2} {}", max_position_error.position_error * mult, max_position_error.line_number);
         println!("1 {:.2} {}", max_azi_error.azi_error * mult, max_azi_error.line_number);
+        println!("2 {:.2} {}", max_m12_error.m12_error * mult, max_m12_error.line_number);
     }
 
     eprintln!("done");

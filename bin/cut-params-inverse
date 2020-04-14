@@ -1,0 +1,2 @@
+# based on https://geographiclib.sourceforge.io/html/geodesic.html#testgeod
+cut -d' ' -f1,2,4,5
