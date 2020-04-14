@@ -52,7 +52,7 @@ async fn run(bin_name: &str, calcs: &Vec<Calculation>) -> Result<(), Box<dyn std
     let geod = Geodesic::wgs84();
 
     if calcs.contains(&Calculation::DirectP1ToP2) || calcs.contains(&Calculation::DirectP2ToP1) {
-        let mut geodsolve_proc = Command::new(bin_name)
+        let mut geodsolve_proc = Command::new(bin_name).arg("-p").arg("10")
             .stdout(Stdio::piped())
             .stdin(Stdio::piped())
             .spawn()
