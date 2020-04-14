@@ -1,12 +1,11 @@
 use crate::calculation::Calculation;
 use geographiclib_rs::Geodesic;
 
-
 // Calculations based on geographiclib@master/tests/GeodTest.cpp
 
 // Math::real angdiff(Math::real a1, Math::real a2) {
 fn angdiff(a1: f64, a2: f64) -> f64 {
-//   Math::real d = a2 - a1;
+    //   Math::real d = a2 - a1;
     let d = a2 - a1;
 
     // if (d >= 180)
@@ -27,21 +26,22 @@ fn angdiff(a1: f64, a2: f64) -> f64 {
 //                    Math::real lon1, Math::real lon2,
 //                    Math::real azi1, Math::real azi2) {
 fn azidiff(lat: f64, lon1: f64, lon2: f64, azi1: f64, azi2: f64) -> f64 {
-//   Math::real
-//     phi = lat * Math::degree(),
+    //   Math::real
+    //     phi = lat * Math::degree(),
     let phi = lat.to_radians();
-//     alpha1 = azi1 * Math::degree(),
+    //     alpha1 = azi1 * Math::degree(),
     let alpha1 = azi1.to_radians();
-//     alpha2 = azi2 * Math::degree(),
+    //     alpha2 = azi2 * Math::degree(),
     let alpha2 = azi2.to_radians();
-//     dlam = angdiff(lon1, lon2) * Math::degree();
+    //     dlam = angdiff(lon1, lon2) * Math::degree();
     let dlam = angdiff(lon1, lon2).to_radians();
-//   Math::real res = sin(alpha2-alpha1)*cos(dlam)
-//     -cos(alpha2-alpha1)*sin(dlam)*sin(phi)
-//     // -sin(alpha1)*cos(alpha2)*(1-cos(dlam))*cos(phi)*cos(phi)
-//     ;
-//   return res;
-    f64::sin(alpha2 - alpha1) * f64::cos(dlam) - f64::cos(alpha2 - alpha1) * f64::sin(dlam) * f64::sin(phi)
+    //   Math::real res = sin(alpha2-alpha1)*cos(dlam)
+    //     -cos(alpha2-alpha1)*sin(dlam)*sin(phi)
+    //     // -sin(alpha1)*cos(alpha2)*(1-cos(dlam))*cos(phi)*cos(phi)
+    //     ;
+    //   return res;
+    f64::sin(alpha2 - alpha1) * f64::cos(dlam)
+        - f64::cos(alpha2 - alpha1) * f64::sin(dlam) * f64::sin(phi)
 }
 
 // Math::real dist(Math::real a, Math::real f,
@@ -73,11 +73,12 @@ fn distance(a: f64, f: f64, lat0: f64, lon0: f64, lat1: f64, lon1: f64) -> f64 {
         // return (a / (1 - f)) *
         //     Math::hypot
         //         (r0 * cos(lam0) - r1 * cos(lam1), r0 * sin(lam0) - r1 * sin(lam1));
-        return (a / (1.0 - f)) * f64::hypot(
-            r0 * f64::cos(lam0) - r1 * f64::cos(lam1),
-            r0 * f64::sin(lam0) - r1 * f64::sin(lam1),
-        );
-        // } else {
+        return (a / (1.0 - f))
+            * f64::hypot(
+                r0 * f64::cos(lam0) - r1 * f64::cos(lam1),
+                r0 * f64::sin(lam0) - r1 * f64::sin(lam1),
+            );
+    // } else {
     } else {
         // // Otherwise use cylindrical formula
         // Math::real
@@ -204,22 +205,50 @@ pub struct DirectError {
     pub m12_error: f64,
     pub S12_error: f64,
     pub line_number: u32,
-    pub calculation: Calculation
+    pub calculation: Calculation,
 }
 
 impl DirectError {
-    pub fn new(computed_lat: f64, computed_lon: f64, computed_azi: f64, computed_m12: f64, computed_S12: f64, expected_lat: f64, expected_lon: f64, expected_azi: f64, expected_m12: f64, expected_S12: f64, tgeod: &Geodesic, line_number: u32, calculation: Calculation) -> Self {
+    pub fn new(
+        computed_lat: f64,
+        computed_lon: f64,
+        computed_azi: f64,
+        computed_m12: f64,
+        computed_S12: f64,
+        expected_lat: f64,
+        expected_lon: f64,
+        expected_azi: f64,
+        expected_m12: f64,
+        expected_S12: f64,
+        tgeod: &Geodesic,
+        line_number: u32,
+        calculation: Calculation,
+    ) -> Self {
         // err[0] = max(dist(tgeod.EquatorialRadius(), tgeod.Flattening(),
         //                   lat2, lon2, tlat2, tlon2),
         //              dist(tgeod.EquatorialRadius(), tgeod.Flattening(),
         //                   lat1, lon1, tlat1, tlon1));
-        let position_error =
-            distance(tgeod.equatorial_radius(), tgeod.flattening(), expected_lat, expected_lon, computed_lat, computed_lon);
+        let position_error = distance(
+            tgeod.equatorial_radius(),
+            tgeod.flattening(),
+            expected_lat,
+            expected_lon,
+            computed_lat,
+            computed_lon,
+        );
 
         // err[1] = max(abs(azidiff(lat2, lon2, tlon2, azi2, tazi2)),
         //              abs(azidiff(lat1, lon1, tlon1, azi1, tazi1))) *
         //     tgeod.EquatorialRadius();
-        let azi_error = azidiff(expected_lat, expected_lon, computed_lon, expected_azi, computed_azi).abs() * tgeod.equatorial_radius();
+        let azi_error = azidiff(
+            expected_lat,
+            expected_lon,
+            computed_lon,
+            expected_azi,
+            computed_azi,
+        )
+        .abs()
+            * tgeod.equatorial_radius();
 
         // err[2] = max(abs(tm12a - m12), abs(tm12b + m12));
         let mut m12_error = (computed_m12 - expected_m12).abs();
@@ -237,6 +266,30 @@ impl DirectError {
 
         let S12_error = 0.0; // TODO
 
-        Self { position_error, azi_error, m12_error, S12_error, line_number, calculation }
+        Self {
+            position_error,
+            azi_error,
+            m12_error,
+            S12_error,
+            line_number,
+            calculation,
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct InverseError {
+    pub s12_error: f64,
+    pub line_number: u32,
+}
+
+impl InverseError {
+    pub fn new(computed_s12: f64, expected_s12: f64, tgeod: &Geodesic, line_number: u32) -> Self {
+        // err[3] = abs(ts12 - s12);
+        let s12_error = (computed_s12 - expected_s12).abs();
+        Self {
+            s12_error,
+            line_number,
+        }
     }
 }

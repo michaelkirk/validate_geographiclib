@@ -2,4 +2,5 @@
 pub enum Calculation {
     DirectP1ToP2,
     DirectP2ToP1,
+    Inverse,
 }
