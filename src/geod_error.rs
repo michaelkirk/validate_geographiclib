@@ -1,3 +1,9 @@
+use crate::calculation::Calculation;
+use geographiclib_rs::Geodesic;
+
+
+// Calculations based on geographiclib@master/tests/GeodTest.cpp
+
 // Math::real angdiff(Math::real a1, Math::real a2) {
 fn angdiff(a1: f64, a2: f64) -> f64 {
 //   Math::real d = a2 - a1;
@@ -191,16 +197,16 @@ void GeodError(const test& tgeod,
 }
 */
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct DirectError {
     pub position_error: f64,
     pub azi_error: f64,
+    pub line_number: u32,
+    pub calculation: Calculation
 }
 
-use geographiclib_rs::Geodesic;
-
 impl DirectError {
-    pub fn new(tgeod: &Geodesic, computed_lat: f64, computed_lon: f64, computed_azi: f64, expected_lat: f64, expected_lon: f64, expected_azi: f64) -> Self {
+    pub fn new(tgeod: &Geodesic, computed_lat: f64, computed_lon: f64, computed_azi: f64, expected_lat: f64, expected_lon: f64, expected_azi: f64, line_number: u32, calculation: Calculation) -> Self {
         // err[0] = max(dist(tgeod.EquatorialRadius(), tgeod.Flattening(),
         //                   lat2, lon2, tlat2, tlon2),
         //              dist(tgeod.EquatorialRadius(), tgeod.Flattening(),
@@ -213,6 +219,6 @@ impl DirectError {
         //     tgeod.EquatorialRadius();
         let azi_error = azidiff(expected_lat, expected_lon, computed_lon, expected_azi, computed_azi).abs() * tgeod.equatorial_radius();
 
-        Self { position_error, azi_error }
+        Self { position_error, azi_error, line_number, calculation }
     }
 }
