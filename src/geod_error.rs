@@ -23,13 +23,13 @@ fn angdiff(a1: f64, a2: f64) -> f64 {
 fn azidiff(lat: f64, lon1: f64, lon2: f64, azi1: f64, azi2: f64) -> f64 {
 //   Math::real
 //     phi = lat * Math::degree(),
-    let phi = lat.to_degrees();
+    let phi = lat.to_radians();
 //     alpha1 = azi1 * Math::degree(),
-    let alpha1 = azi1.to_degrees();
+    let alpha1 = azi1.to_radians();
 //     alpha2 = azi2 * Math::degree(),
-    let alpha2 = azi2.to_degrees();
+    let alpha2 = azi2.to_radians();
 //     dlam = angdiff(lon1, lon2) * Math::degree();
-    let dlam = angdiff(lon1, lon2).to_degrees();
+    let dlam = angdiff(lon1, lon2).to_radians();
 //   Math::real res = sin(alpha2-alpha1)*cos(dlam)
 //     -cos(alpha2-alpha1)*sin(dlam)*sin(phi)
 //     // -sin(alpha1)*cos(alpha2)*(1-cos(dlam))*cos(phi)*cos(phi)
@@ -48,7 +48,7 @@ fn distance(a: f64, f: f64, lat0: f64, lon0: f64, lat1: f64, lon1: f64) -> f64 {
     // //    WGS84.Inverse(real(lat0), real(lon0), real(lat1), real(lon1), s12);
     // //  return Math::real(s12);
     // a *= Math::degree();
-    let a = a.to_degrees();
+    let a = a.to_radians();
 
     // if (abs(lat0 + lat1) > Math::real(179.998)) {
     if (lat0 + lat1).abs() > 179.998 {
@@ -58,11 +58,11 @@ fn distance(a: f64, f: f64, lat0: f64, lon0: f64, lat1: f64, lon1: f64) -> f64 {
         // r1 = 90 - abs(lat1),
         let r0 = 90.0 - lat0.abs();
         let r1 = 90.0 - lat1.abs();
+
         // lam0 = lon0 * Math::degree(),
         // lam1 = lon1 * Math::degree();
-
-        let lam0 = lon0.to_degrees();
-        let lam1 = lon1.to_degrees();
+        let lam0 = lon0.to_radians();
+        let lam1 = lon1.to_radians();
 
         // return (a / (1 - f)) *
         //     Math::hypot
@@ -76,13 +76,13 @@ fn distance(a: f64, f: f64, lat0: f64, lon0: f64, lat1: f64, lon1: f64) -> f64 {
         // // Otherwise use cylindrical formula
         // Math::real
         // phi = lat0 * Math::degree(),
-        let phi = lat0.to_degrees();
+        let phi = lat0.to_radians();
         // cphi = abs(lat0) <= 45 ? cos(phi)
         let cphi = if lat0.abs() <= 45.0 {
             f64::cos(phi)
         } else {
             // : sin((90 - abs(lat0)) * Math::degree()),
-            f64::sin(90.0 - lat0.abs()).to_degrees()
+            f64::sin((90.0 - lat0.abs()).to_radians())
         };
 
         // e2 = f * (2 - f),
@@ -201,8 +201,6 @@ use geographiclib_rs::Geodesic;
 
 impl DirectError {
     pub fn new(tgeod: &Geodesic, computed_lat: f64, computed_lon: f64, computed_azi: f64, expected_lat: f64, expected_lon: f64, expected_azi: f64) -> Self {
-        // Direct from P1:
-
         // err[0] = max(dist(tgeod.EquatorialRadius(), tgeod.Flattening(),
         //                   lat2, lon2, tlat2, tlon2),
         //              dist(tgeod.EquatorialRadius(), tgeod.Flattening(),

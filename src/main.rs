@@ -143,7 +143,8 @@ async fn run(bin_name: &str, calcs: &Vec<Calculation>) -> Result<(), Box<dyn std
             }
         }
 
-        println!("{} {}", max_position_error.unwrap(), max_azi_error.unwrap());
+        let mult: f64 = 1.0e9;
+        println!("{} {}", max_position_error.unwrap() * mult, max_azi_error.unwrap() * mult);
     }
 
     eprintln!("done");
