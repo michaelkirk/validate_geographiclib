@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+# head mjk/input/GeodTest.dat | cargo run mjk/GeodSolve
+
+set -e
+
+cargo build
+
+pushd ../geographiclib-rs && cargo build
+popd
+
+time cat mjk/input/GeodTest.dat | head -n 500 | ../geographiclib/tests/GeodTest
+time cat mjk/input/GeodTest.dat | head -n 500 | ./target/debug/validate_geographiclib mjk/GeodSolve
+time cat mjk/input/GeodTest.dat | head -n 500 | ./target/debug/validate_geographiclib bin/GeodSolve.py
+time cat mjk/input/GeodTest.dat | head -n 500 | ./target/debug/validate_geographiclib ../geographiclib-rs/target/debug/geodsolve
+

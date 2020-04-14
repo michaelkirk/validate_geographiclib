@@ -230,6 +230,7 @@ async fn run(bin_name: &str, calcs: &Vec<Calculation>) -> Result<(), Box<dyn std
     let max_azi_error = max_azi_error.unwrap();
     let max_m12_error = max_m12_error.unwrap();
 
+    // Print output like GeodTest's
     println!(
         "0 {:.2} {}",
         max_position_error.position_error * mult,
