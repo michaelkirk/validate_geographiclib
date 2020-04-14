@@ -28,7 +28,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     match args.len() {
         2 => {
-            run(&args[1], Calculation::DirectFromP1).await
+            run(&args[1], Calculation::DirectP1ToP2).await
         }
         _ => {
             usage();
@@ -64,15 +64,17 @@ async fn run(bin_name: &String, calc: Calculation) -> Result<(), Box<dyn std::er
     ).lines();
 
     while let Some(test_case_line) = test_case_reader.next_line().await? {
-        let input = parse_input(&test_case_line, calc);
+        let test_case_fields = test_case_line.split(" ").map(|s| s.parse::<f64>().unwrap()).collect();
+        let input = format_input(&test_case_fields, calc);
         geodsolve_input.write_all(input.as_bytes()).await.expect("write failed");
         geodsolve_input.flush().await.expect("flush failed");
 
         match geodsolve_output.next_line().await {
-            Err(e) => panic!("err: {:?}", e),
+        Err(e) => panic!("err: {:?}", e),
             Ok(None) => panic!("geodsolve should have output after giving it input"),
             Ok(Some(geodsolve_output_line)) => {
-                compare(test_case_line, geodsolve_output_line, calc);
+                let geodsolve_output_fields = geodsolve_output_line.split(" ").map(|s| s.parse::<f64>().unwrap()).collect();
+                compare(&test_case_fields, &geodsolve_output_fields, calc);
             }
         }
     }
@@ -84,10 +86,7 @@ async fn run(bin_name: &String, calc: Calculation) -> Result<(), Box<dyn std::er
 use geographiclib_rs::Geodesic;
 use geod_error::DirectError;
 
-fn compare(test_case: String, geodsolve_output: String, calc: Calculation) {
-    let test_case_fields: Vec<f64> = test_case.split(" ").map(|s| s.parse::<f64>().unwrap()).collect();
-    let output_fields: Vec<f64> = geodsolve_output.split(" ").map(|s| s.parse::<f64>().unwrap()).collect();
-
+fn compare(test_case_fields: &Vec<f64>, output_fields: &Vec<f64>, calc: Calculation) {
     let geod = Geodesic::wgs84();
     let error = DirectError::new(
         Geodesic::wgs84(),
@@ -104,14 +103,17 @@ fn compare(test_case: String, geodsolve_output: String, calc: Calculation) {
 
 #[derive(Clone, Copy)]
 enum Calculation {
-    DirectFromP1
+    DirectP1ToP2,
+    DirectP2ToP1
 }
 
-fn parse_input(line: &str, calc: Calculation) -> String {
+fn format_input(fields: &Vec<f64>, calc: Calculation) -> String {
     match calc {
-        Calculation::DirectFromP1 => {
-            let fields: Vec<&str> = line.split(" ").collect::<Vec<&str>>();
+        Calculation::DirectP1ToP2 => {
             format!("{} {} {} {}\n", fields[0], fields[1], fields[2], fields[6])
+        }
+        Calculation::DirectP2ToP1 => {
+            format!("{} {} {} {}\n", fields[3], fields[4], fields[5], fields[6])
         }
     }
 }
