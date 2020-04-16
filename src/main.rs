@@ -231,24 +231,24 @@ async fn run(bin_name: &str, calcs: &Vec<Calculation>) -> Result<(), Box<dyn std
 
     // Print output like GeodTest's
     println!(
-        "0 {:.2} {}",
+        "position error (direct)  0 {:.2} {}",
         max_position_error.position_error * mult,
         max_position_error.line_number
     );
     println!(
-        "1 {:.2} {}",
+        "azi error (direct)       1 {:.2} {}",
         max_azi_error.azi_error * mult,
         max_azi_error.line_number
     );
     println!(
-        "2 {:.2} {}",
+        "m12 error (direct)       2 {:.2} {}",
         max_m12_error.m12_error * mult,
         max_m12_error.line_number
     );
 
     let max_distance_error = max_distance_error.unwrap();
     println!(
-        "3 {:.2} {}",
+        "distance error (inverse) 3 {:.2} {}",
         max_distance_error.s12_error * mult,
         max_distance_error.line_number
     );
