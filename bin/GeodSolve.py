@@ -19,8 +19,10 @@ class Runner(object):
         # compatibility with the validation tool.
         self.precision = args.precision
 
+        self.input_file = args.input_file or '-'
+
     def run(self):
-        for line in fileinput.input('-'):
+        for line in fileinput.input(self.input_file):
             # eprintln("line: %s" % line)
             fields = [float(x) for x in line.split(" ")]
 
@@ -96,6 +98,7 @@ if __name__ == "__main__":
     parser.add_argument('-i', dest='is_inverse', default=False, action='store_true', help='perform an inverse geodesic calculation')
     parser.add_argument('-f', dest='is_full_output', default=False, action='store_true', help='full output')
     parser.add_argument('-p', dest='precision', default=3, help='full output')
+    parser.add_argument('--input-file', help='read from file rather than stdin')
     args = parser.parse_args()
 
     try:
